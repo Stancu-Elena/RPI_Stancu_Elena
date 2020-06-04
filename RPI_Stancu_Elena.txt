@@ -1,0 +1,40 @@
+from sense_hat import SenseHat
+import sys 
+#import python_main_function
+import os
+#import smbus
+import string
+import paho.mqtt.publish as publish
+import paho.mqtt.client as mqtt
+import time
+import json
+
+
+
+
+
+MQTT_server="mqtt.beia-telemetrie.ro"
+#MQTT_port="1883"
+def main():
+    
+    
+    client=mqtt.Client()
+    client.connect(MQTT_server, 1883, 60) 
+    client.loop_start()
+    topic='training/raspberrypi/Elena-Stancu'
+    
+    while True:
+        sense = SenseHat()
+        sense.clear()
+        temp = sense.get_temperature()
+    
+        data = {'temperature':temp, }
+               
+        payload = json.dumps(data)
+        print("Topic: {0}".format(topic))
+        print("Payload: {0}".format(payload))
+        client.publish(topic,payload=payload,qos=1)
+        time.sleep(5)
+        
+if __name__ == '__main__':
+    main()
