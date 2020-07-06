@@ -1,0 +1,73 @@
+import time
+import math
+from MCP3008 import MCP3008
+
+
+ class MQ4():
+    MQ_PIN                       ="P10"
+    RL_VALUE                     = 10
+    RO_FRESH_AIR_FACTOR          = 11.820
+
+
+    CALIBARAION_SAMPLE_TIMES     = 50
+    CALIBRATION_SAMPLE_INTERVAL  = 500
+    READ_SAMPLE_INTERVAL         = 50
+    READ_SAMPLE_TIMES            = 5
+
+
+    Gas_Methane                  =0
+    GAS_CNG                      =1
+
+
+def __init__(self, analogPin, Ro=10):
+    self.Ro = Ro
+    self.MQ4_PIN = analogPin
+    self.adc = MCP3008()
+
+
+    self.MethaneCurve = [2.3,0.21,-0.47]
+
+
+    self.CNGCurve = [2.3,0.72,-0.34]
+
+    self.SmokeCurve =[2.3,0.53,-0.44]
+
+
+    print("Calibrating MQ-4...")
+    self.Ro = self.MQCalibration(self.MQ4_PIN)
+    print("Calibration of MQ-4 is done...\n")
+    print("Ro=%f kohm" % self.Ro)
+def MQ4Percentage(self):
+    val = {}
+    read = self.MQ4Read(self.MQ_PIN)
+    val["GAS_Methane"]  = self.MQ4GetGasPercentage(read/self.Ro, self.GAS_Methane)
+    val["GAS_CNG"]      = self.MQ4GetGasPercentage(read/self.Ro, self.GAS_CNG)
+
+    return val
+
+
+
+def MQ4ResistanceCalculation(self, raw_adc):
+          return float(self.RL_VALUE*(1023.0-raw_adc)/float(raw_adc));
+def MQ4Calibration(self, mq4_pin):
+    val = 0.0
+    for i in range(self.CALIBARAION_SAMPLE_TIMES):
+        val += self.MQ4ResistanceCalculation(self.adc.read(mq4_pin))
+        time.sleep(self.CALIBRATION_SAMPLE_INTERVAL/1000.0)
+
+    val = val/self.CALIBARAION_SAMPLE_TIMES
+    val = val/self.RO_FRESH_AIR_FACTOR
+
+
+    return val;
+ def MQRead(self):
+        rs = 0.0
+        for i in range(self.READ_SAMPLE_TIMES):
+            rs += self.MQResistanceCalculation(self.adc.read(self.MQ4_PIN))
+            time.sleep(self.READ_SAMPLE_INTERVAL/1000.0)
+
+        rs = rs/self.READ_SAMPLE_TIMES
+
+        return rs
+  def MQ4GetPercentage(self, rs_ro_ratio, pcurve):
+      return (math.pow(10,( ((math.log(rs_ro_ratio)-pcurve[1])/ pcurve[2]) + pcurve[0])))
